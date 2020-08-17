@@ -43,34 +43,58 @@ Practice
 <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
 <script>
 	var all_words;
+	var all_words_sorted_list;
 	var from = 0;
 	var to = 0;
+	var playing_list = []
 	var current, current_q, current_t, current_w;
-	var compact_loader = $.getJSON({'url': "https://raw.githubusercontent.com/danelh/quotes_practice/master/quotes.json", 'async': true});	 
+	var compact_loader = $.getJSON({'url': "https://raw.githubusercontent.com/danelh/vocabulary/master/freq.json", 'async': true});	 
 	compact_loader.done(function(){
 		all_words = compact_loader.responseJSON;
 		init();}
 	);
 	
 	function init(){
-		console.log("count: " + all_words.length);
+		all_words_sorted_list = get_all_words_sorted_list();
+		console.log("count: " + all_words_sorted_list.length);
+		update_params_from_url();
+		console.log("to: " + to);
+		console.log("from: " + from);
+		playing_list = all_words_sorted_list.slice(from, to);
 		next();
 	}
 	
+	function get_all_words_sorted_list(){
+		// Create items array
+		var items = Object.keys(all_words).map(function(key) {
+		return [key, all_words[key]];
+		});
+		
+		items.sort(function(first, second) {
+		return second[1]["weighted_freq"] - first[1]["weighted_freq"];
+		});
+		
+		return items;
+	}	
+	
 	function next(){
-		current = get_random_from_list(all_words,1)[0]		
-		current_q = current[0][0];
-		current_t = current[0][1];
-		current_w = current[1];
+		console.log("count: " + playing_list.length);
+		current = get_random_from_list(playing_list,1)[0]
+		playing_list = playing_list.filter(item => item !== current)		
+		current_w_details = current[1];		
+		current_w = current[0];
 		document.getElementById("q").innerHTML = current_q;
 		document.getElementById("t").innerHTML = "T";
 		//update_link_to_word();
 	}
 	
 	function show(){
-		to = 0;
-		from = 100;
-		for (i=to; i<from; i+=1){
+		MAX_TO_DISPLAY = 5000;
+		count_to_display = to - from;
+		if (count_to_display > MAX_TO_DISPLAY){
+			count_to_display = MAX_TO_DISPLAY;
+		}
+		for (i=from; i<from + count_to_display; i+=1){
 			addRow(i);
 		}
 	}
@@ -85,39 +109,46 @@ Practice
 	function getTemplateRow(i) {
 		var x = document.getElementById("templateRow").cloneNode(true);
 		x.id = "";
-		x.style.display = "";
-		console.log(x.innerHTML);
-		wiki_link = get_wiki_href("amo");		
+		x.style.display = "";		
+		k = all_words_sorted_list[i][0];
+		wiki_link = get_wiki_href_by_key(k);		
 		x.innerHTML = "<td>" + i + "</td><td>" + wiki_link + "</td>";
 		return x;
-}
+	}
 	
 	function update_params_from_url(){
 		from = load_from_param_from_url();
+		console.log("here3: " + from);
 		to = load_to_param_from_url();
-		if (to >= all_words.length){
-			to = all_words.length - 1;
+		if ((to >= all_words_sorted_list.length) || (t ==0)){
+			to = all_words_sorted_list.length - 1;
 		}
+		
+		console.log("to: " + to);
+		console.log("from: " + from);
+
 		
 	}
 	
 	function load_from_param_from_url(){
 		f = get_param_from_url("f");
+		console.log("here: " + f);
 		if (f){
 			return (parseInt(f));
 		}
 		else{
+			console.log("here2: " + f);
 			return 0;
 		}
 	}
 
 	function load_to_param_from_url(){
-		t = get_param_from_url("t");
+		t = get_param_from_url("t");		
 		if (t){
 			return (parseInt(t));
 		}
 		else{
-			return t;
+			return all_words_sorted_list.length - 1;
 		}
 	}
 
@@ -127,12 +158,17 @@ Practice
 		var url = new URL(url_string);
 		var c = url.searchParams.get(param);
 		return c;
-  }
-
+   }
 	
-	function get_wiki_href(current_w){
+	function get_wiki_href_by_key(k){
+		v_headword = all_words[k]["headword"];
+		v = all_words_sorted_list[i][0]
+		return get_wiki_href(v_headword ,k);
+	}
+	
+	function get_wiki_href(current_w, current_w_to_show){
 		wiki_link = get_wiki_link(current_w);
-		link_text = "<a href=\"" + wiki_link + "\" target=\"_blank\">" + current_w + "</a>";
+		link_text = "<a href=\"" + wiki_link + "\" target=\"_blank\">" + current_w_to_show + "</a>";
 		return link_text;
 	}
 	
