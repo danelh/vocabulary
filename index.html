@@ -1,0 +1,160 @@
+<!DOCTYPE HTML>
+<html>
+
+<style>
+p{
+	font-size: 20px;
+	padding-left: 5px;
+}
+</style>
+
+<head>
+Practice
+</head>
+
+<body>
+<div>
+<p id="q"> Q </p>
+</div>
+<div>
+<p id="t"> T </p>
+</div>
+<div>
+<button id="show" type="button" onclick=show()>show all</button>
+<button id="next" type="button" onclick=next()>next</button>
+</div>
+<div>
+<p id="w"> W </p>
+</div>
+<div>
+<table id="theTable">
+<tr>
+<td>id</td>
+<td>name</td>
+</tr>
+<tr id="templateRow" style="display:none">
+<td>{id}</td>
+<td>Test</td>
+</tr>
+</table>
+</div>
+</body>
+
+<script src="https://code.jquery.com/jquery-3.5.0.js"></script>
+<script>
+	var all_words;
+	var from = 0;
+	var to = 0;
+	var current, current_q, current_t, current_w;
+	var compact_loader = $.getJSON({'url': "https://raw.githubusercontent.com/danelh/quotes_practice/master/quotes.json", 'async': true});	 
+	compact_loader.done(function(){
+		all_words = compact_loader.responseJSON;
+		init();}
+	);
+	
+	function init(){
+		console.log("count: " + all_words.length);
+		next();
+	}
+	
+	function next(){
+		current = get_random_from_list(all_words,1)[0]		
+		current_q = current[0][0];
+		current_t = current[0][1];
+		current_w = current[1];
+		document.getElementById("q").innerHTML = current_q;
+		document.getElementById("t").innerHTML = "T";
+		//update_link_to_word();
+	}
+	
+	function show(){
+		to = 0;
+		from = 100;
+		for (i=to; i<from; i+=1){
+			addRow(i);
+		}
+	}
+	
+	function addRow() {
+		var t = document.getElementById("theTable");
+		var rows = t.getElementsByTagName("tr");
+		var r = rows[rows.length - 1];
+		r.parentNode.insertBefore(getTemplateRow(i), r);
+	}
+	
+	function getTemplateRow(i) {
+		var x = document.getElementById("templateRow").cloneNode(true);
+		x.id = "";
+		x.style.display = "";
+		console.log(x.innerHTML);
+		wiki_link = get_wiki_href("amo");		
+		x.innerHTML = "<td>" + i + "</td><td>" + wiki_link + "</td>";
+		return x;
+}
+	
+	function update_params_from_url(){
+		from = load_from_param_from_url();
+		to = load_to_param_from_url();
+		if (to >= all_words.length){
+			to = all_words.length - 1;
+		}
+		
+	}
+	
+	function load_from_param_from_url(){
+		f = get_param_from_url("f");
+		if (f){
+			return (parseInt(f));
+		}
+		else{
+			return 0;
+		}
+	}
+
+	function load_to_param_from_url(){
+		t = get_param_from_url("t");
+		if (t){
+			return (parseInt(t));
+		}
+		else{
+			return t;
+		}
+	}
+
+	
+	function get_param_from_url(param){
+		var url_string = window.location.href
+		var url = new URL(url_string);
+		var c = url.searchParams.get(param);
+		return c;
+  }
+
+	
+	function get_wiki_href(current_w){
+		wiki_link = get_wiki_link(current_w);
+		link_text = "<a href=\"" + wiki_link + "\" target=\"_blank\">" + current_w + "</a>";
+		return link_text;
+	}
+	
+	function get_wiki_link(current_w){			
+		wiki_link ="https://en.wiktionary.org/wiki/" + current_w + "#Latin"; 
+		return wiki_link;
+	}
+	
+	
+	function get_random_from_list(l, count){	
+		var selected = [];
+		while (selected.length < count){
+			current_selected = l[Math.floor(Math.random() * l.length)];
+			if (!selected.includes(current_selected)){
+				selected.push(current_selected);
+			}
+	}
+	
+    return selected;
+  }
+
+
+</script>
+
+</html>
