@@ -6,35 +6,35 @@ p{
 	font-size: 20px;
 	padding-left: 5px;
 }
+
 </style>
 
 <head>
-Practice
+Vocabulary
 </head>
 
 <body>
 <div>
-<p id="q"> Q </p>
-</div>
-<div>
-<p id="t"> T </p>
-</div>
-<div>
+<p></p>
+<p>a</p>
 <button id="show" type="button" onclick=show()>show all</button>
 <button id="next" type="button" onclick=next()>next</button>
 </div>
-<div>
+<div id="ddiv">
 <p id="w"> W </p>
+<p id="w2"> Z </p>
 </div>
 <div>
 <table id="theTable">
 <tr>
 <td>id</td>
-<td>name</td>
+<td>wiki</td>
+<td>persues</td>
 </tr>
 <tr id="templateRow" style="display:none">
 <td>{id}</td>
 <td>Test</td>
+<td>Test2</td>
 </tr>
 </table>
 </div>
@@ -61,7 +61,17 @@ Practice
 		console.log("to: " + to);
 		console.log("from: " + from);
 		playing_list = all_words_sorted_list.slice(from, to);
+		init_keyboard_clicks();
 		next();
+	}
+	
+	function init_keyboard_clicks(){
+		document.addEventListener("keydown", function(event) {
+		var x = event.which || event.keyCode;
+		if ((x === 13) ||  (x === 39)){		
+			next();
+		}
+		});
 	}
 	
 	function get_all_words_sorted_list(){
@@ -80,11 +90,9 @@ Practice
 	function next(){
 		console.log("count: " + playing_list.length);
 		current = get_random_from_list(playing_list,1)[0]
-		playing_list = playing_list.filter(item => item !== current)		
-		current_w_details = current[1];		
-		current_w = current[0];
-		document.getElementById("q").innerHTML = current_q;
-		document.getElementById("t").innerHTML = "T";
+		playing_list = playing_list.filter(item => item !== current)				
+		document.getElementById("w").innerHTML = get_wiki_href_by_key(current[0]);
+		document.getElementById("w2").innerHTML = get_persues_href_by_key(current[0]);		
 		//update_link_to_word();
 	}
 	
@@ -111,33 +119,31 @@ Practice
 		x.id = "";
 		x.style.display = "";		
 		k = all_words_sorted_list[i][0];
-		wiki_link = get_wiki_href_by_key(k);		
-		x.innerHTML = "<td>" + i + "</td><td>" + wiki_link + "</td>";
+		wiki_link = get_wiki_href_by_key(k);
+		per_link = get_persues_href_by_key(k);
+		x.innerHTML = "<td>" + i + "</td><td>" + wiki_link + "</td><td>" + per_link + "</td>";
 		return x;
 	}
 	
 	function update_params_from_url(){
-		from = load_from_param_from_url();
-		console.log("here3: " + from);
+		from = load_from_param_from_url();		
 		to = load_to_param_from_url();
-		if ((to >= all_words_sorted_list.length) || (t ==0)){
+		if ((to >= all_words_sorted_list.length) || (to <=0)){
 			to = all_words_sorted_list.length - 1;
-		}
+		}	
 		
-		console.log("to: " + to);
-		console.log("from: " + from);
+		if ((from >= all_words_sorted_list.length) || (from < 0)){
+			from = 0;
+		}	
 
-		
 	}
 	
 	function load_from_param_from_url(){
-		f = get_param_from_url("f");
-		console.log("here: " + f);
+		f = get_param_from_url("f");		
 		if (f){
 			return (parseInt(f));
 		}
-		else{
-			console.log("here2: " + f);
+		else{			
 			return 0;
 		}
 	}
@@ -161,8 +167,7 @@ Practice
    }
 	
 	function get_wiki_href_by_key(k){
-		v_headword = all_words[k]["headword"];
-		v = all_words_sorted_list[i][0]
+		v_headword = all_words[k]["headword"];		
 		return get_wiki_href(v_headword ,k);
 	}
 	
@@ -177,6 +182,21 @@ Practice
 		return wiki_link;
 	}
 	
+	function get_persues_href_by_key(k){
+		//v_headword = all_words[k]["headword"];		
+		return get_persues_href(k ,k);
+	}
+
+	
+	function get_persues_href(current_w, current_w_to_show){
+		p_link = get_persues_link(current_w);
+		link_text = "<a href=\"" + p_link + "\" target=\"_blank\">" + current_w_to_show + "</a>";
+		return link_text;
+	}
+	
+	function get_persues_link(current_w){
+		return "http://www.perseus.tufts.edu/hopper/text?doc=Perseus:text:1999.04.0059:entry=" + current_w;
+	}
 	
 	function get_random_from_list(l, count){	
 		var selected = [];
